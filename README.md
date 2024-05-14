@@ -1,2 +1,3 @@
-# Fortnite-API-Wrapper
-Obtaining stats for a specific player by making API calls for practice
+# API-Wrapper
+
+Obtaining stats for a specific player in fornite by making API calls for practice
