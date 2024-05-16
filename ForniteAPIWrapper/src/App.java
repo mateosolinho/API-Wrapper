@@ -26,7 +26,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class App {
-    public static String nombrePlayerUrl = "";
+    public static String playerNameUrl = "";
     // String apiUrl = Config.API_URL;
     String authToken = Config.AUTHORIZATION_HEADER;
     String playerId = "";
@@ -80,18 +80,18 @@ public class App {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         try {
             System.out.print(ANSI_PURPLE + "[+] Player Name: " + ANSI_RESET + "\n\n");
-            nombrePlayerUrl = reader.readLine();
+            playerNameUrl = reader.readLine();
         } catch (IOException e) {
             System.err.println("Error reading input: " + e.getMessage());
         }
 
     }
 
-    public JsonValue leerHttps(String direccion) throws IOException {
+    public JsonValue readHTTPS(String url) throws IOException {
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
-                .url(direccion)
+                .url(url)
                 .addHeader("Authorization", authToken)
                 .build();
 
@@ -106,8 +106,7 @@ public class App {
         }
     }
 
-    public void escribeJSON(JsonValue json, File f) throws IOException {
-        System.out.println("Guardando tipo: " + json.getValueType());
+    public void JSONWritter(JsonValue json, File f) throws IOException {
         try (PrintWriter pw = new PrintWriter(f);
                 JsonWriter writer = Json.createWriter(pw)) {
 
@@ -115,20 +114,18 @@ public class App {
                 writer.writeObject(json.asJsonObject());
             } else if (json.getValueType() == JsonValue.ValueType.ARRAY) {
                 writer.writeArray(json.asJsonArray());
-            } else {
-                System.out.println("No se soporta la escritura");
-            }
+            } 
         }
     }
 
-    public JsonValue leeJSON(String ruta) {
+    public JsonValue JSONReader(String ruta) {
         try {
             if (ruta.toLowerCase().startsWith("http://")) {
-                return leerHttp(ruta);
+                return readHTTP(ruta);
             } else if (ruta.toLowerCase().startsWith("https://")) {
-                return leerHttps(ruta);
+                return readHTTPS(ruta);
             } else {
-                return leerFichero(ruta);
+                return readFile(ruta);
             }
         } catch (IOException e) {
             System.out.println("Error procesando documento Json " +
@@ -137,22 +134,14 @@ public class App {
         }
     }
 
-    public JsonValue leerFichero(String ruta) throws FileNotFoundException {
+    public JsonValue readFile(String ruta) throws FileNotFoundException {
         try (JsonReader reader = Json.createReader(new FileReader(ruta))) {
             return reader.read();
-            /*
-             * JsonStructure jsonSt = reader.read();
-             * System.out.println(jsonSt.getValueType());
-             * JsonObject jsonObj = reader.readObject();
-             * System.out.println(jsonObj.getValueType());
-             * JsonArray jsonArr = reade r.readArray();
-             * System.out.println(jsonArr.getValueType());
-             */
         }
     }
 
-    public JsonValue leerHttp(String direccion) throws IOException {
-        URL url = new URL(direccion);
+    public JsonValue readHTTP(String path) throws IOException {
+        URL url = new URL(path);
         try (InputStream is = url.openStream();
                 JsonReader reader = Json.createReader(is)) {
             return reader.read();
@@ -223,8 +212,8 @@ public class App {
             try {
                 Scanner sc2 = new Scanner(System.in);
                 System.out.println("========================================");
-                System.out.println(ANSI_PURPLE + "[+] Tipo de Partida:" + ANSI_RESET + "\n");
-                System.out.println(ANSI_BLUE + "1" + ANSI_RESET + " Todos [Todos los modos de Juego]");
+                System.out.println(ANSI_PURPLE + "[+] GameMode:" + ANSI_RESET + "\n");
+                System.out.println(ANSI_BLUE + "1" + ANSI_RESET + " All [All GameMode]");
                 System.out.println(ANSI_BLUE + "2" + ANSI_RESET + " Solo ");
                 System.out.println(ANSI_BLUE + "3" + ANSI_RESET + " Duo");
                 System.out.println(ANSI_BLUE + "4" + ANSI_RESET + " Squad");
@@ -232,7 +221,7 @@ public class App {
                 resGame = sc2.nextInt();
             } catch (InputMismatchException e) {
                 excp = true;
-                System.out.println(ANSI_RED + "[!] Intrroduce un valor válido" + ANSI_RESET);
+                System.out.println(ANSI_RED + "[!] Insert valid value" + ANSI_RESET);
             }
         } while (resGame > 5 || resGame < 0 || excp);
 
@@ -256,15 +245,15 @@ public class App {
         do {
             try {
                 Scanner sc = new Scanner(System.in);
-                System.out.println(ANSI_PURPLE + "\n[+] Escoge el tipo de dispositivo" + ANSI_RESET + "\n");
-                System.out.println(ANSI_BLUE + "1" + ANSI_RESET + " Todos [Todos los dispositivos]");
-                System.out.println(ANSI_BLUE + "2" + ANSI_RESET + " Teclado Y Raton [PC]");
-                System.out.println(ANSI_BLUE + "3" + ANSI_RESET + " Mando [Consola]");
-                System.out.println(ANSI_BLUE + "4" + ANSI_RESET + " Movil/Tablet [Dispositivo Portatil]");
+                System.out.println(ANSI_PURPLE + "\n[+] Choose the type of device " + ANSI_RESET + "\n");
+                System.out.println(ANSI_BLUE + "1" + ANSI_RESET + " All [All Devices]");
+                System.out.println(ANSI_BLUE + "2" + ANSI_RESET + " Keyboard [PC]");
+                System.out.println(ANSI_BLUE + "3" + ANSI_RESET + " Controller [Console]");
+                System.out.println(ANSI_BLUE + "4" + ANSI_RESET + " Movil/Tablet [Portatil Device]");
                 resDevice = sc.nextInt();
             } catch (InputMismatchException e) {
                 excp = true;
-                System.out.println(ANSI_RED + "[!] Intrroduce un valor válido" + ANSI_RESET);
+                System.out.println(ANSI_RED + "[!] Insert a valid value" + ANSI_RESET);
             }
         } while (resDevice > 4 || resDevice < 0 || excp);
 
@@ -322,16 +311,14 @@ public class App {
 
     private void runApp() throws IOException {
         asciiArt();
-        JsonObject obj = leerHttps(Config.getApiUrl(nombrePlayerUrl)).asJsonObject();
+        JsonObject obj = readHTTPS(Config.getApiUrl(playerNameUrl)).asJsonObject();
         getGeneralStats(obj);
     }
     public static void main(String[] args) {
 
         App a = new App();
         try {
-            // File f = new File(System.getProperty("user.home") + "\\Desktop\\fortnite.json");
             a.runApp();
-            // a.escribeJSON(obj, f);
         } catch (IOException e) {
             a.error = true;
             System.err.println(ANSI_RED
